@@ -133,8 +133,8 @@
 	],
 	"game": {
 		"name": "大仙翁",
-		"appid": "699227441",
-		"cid": "0"
+		"appid": "672642737",
+		"cid": "13280"
 	},
 	"configs": [
 		{
@@ -148,6 +148,9 @@
 		},
 		{
 			"appid": "UNKNOW"
+		},
+		{
+			"appid": "672642737"
 		}
 	],
 	"needExecNative": true
