@@ -39,7 +39,7 @@
   "title": "hello_world",
   "webOrientation": "auto",
   "wechatgame": {
-    "REMOTE_SERVER_ROOT": "",
+    "REMOTE_SERVER_ROOT": "127.0.0.1",
     "appid": "wx7c10619ec1f0c576",
     "orientation": "portrait",
     "separate_engine": false,
