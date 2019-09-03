@@ -60,8 +60,10 @@ cc.Class({
     getDiceNum: function () {
         var diceCount = Math.round(Math.random() * 60);
         var diceNum = 1;
-        let result = websocket.send_data("test");
-
+        // let result = websocket.send_data("test");
+        websocket.sendMsg("test", function (data) {
+            console.log("after msg" + data)
+        })
         return diceNum;
     },
 
