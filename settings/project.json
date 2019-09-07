@@ -32,13 +32,13 @@
     "default",
     "blankPath"
   ],
-  "last-module-event-record-time": 1567213467394,
+  "last-module-event-record-time": 1567824026300,
   "simulator-orientation": false,
   "simulator-resolution": {
     "height": 640,
     "width": 960
   },
-  "start-scene": "current",
+  "start-scene": "9977b559-4042-4de7-b994-b38808bac56d",
   "use-customize-simulator": true,
   "use-project-simulator-setting": false
 }

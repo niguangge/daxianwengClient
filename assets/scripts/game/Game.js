@@ -26,6 +26,9 @@ cc.Class({
     },
 
     onLoad() {
+        this.userId = 0;
+        this.curUser = 0;
+        this.userList = [];
         this.heroPos = -1;
         this.width = 0;
         this.height = 0;
@@ -43,8 +46,9 @@ cc.Class({
         // this.createHero(0);
         this.diceShow();
         this.eventHide();
-        websocket.connect("ws://localhost:6060/webSocketServer/1-1", map);
-
+        this.userList = [0, 1, 2, 3];
+        websocket.connect();
+        console.log(window.gameData);
     },
 
     diceClick: function () {
@@ -58,16 +62,17 @@ cc.Class({
     },
 
     getDiceNum: function () {
-        var diceCount = Math.round(Math.random() * 60);
         var diceNum = 1;
         // let result = websocket.send_data("test");
-        websocket.sendMsg("test", function (data) {
+        let params = {
+            diceNums: "3",
+            diceTypes: ["normal", "plusOne", "minusOne"]
+        }
+        websocket.sendMsg("dice", params, (data) => {
             console.log("after msg" + data)
         })
         return diceNum;
     },
-
-
 
     eventExecute: function () {
         this.curLing += 70;
