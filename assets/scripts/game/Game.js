@@ -49,7 +49,9 @@ cc.Class({
         // this.eventHide();
         // this.userList = [0, 1, 2, 3];
         websocket.connect();
-        this.run("dice")
+        websocket.listen("start",function(){
+            this.run("dice");
+        })
     },
     /*
         游戏流程：
