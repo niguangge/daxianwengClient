@@ -2,12 +2,17 @@
 var websocket = {
     sock: null,
     messageList: {
-        "join": function () {
-            console.log(messageMaker.getJoinMessage);
+        "join": function (message) {
+            console.log(message);
+            console.log(message.params.userOrder);
+            window.userOrder = message.params.userOrder;
         },
-        "leave": function () {
+        "leave": function (message) {
             console.log(messageMaker.getLeaveMessage);
         },
+        "ready": function (message) {
+            console.log(messageMaker.getReadyMessage);
+        }
     },
     userId: '',
     roomId: '',
@@ -58,11 +63,12 @@ var websocket = {
     },
 
     sendMsg: function (stage, params, callback) {
-        const name = "dice";
         //存储事件
-        this.messageList[name] = callback;
-        console.log("messageMaker is :" + messageMaker);
+        this.messageList[stage] = callback;
         this.sock.send(messageMaker.getMsg(stage, params));
+    },
+    listen: function (stage, callback) {
+        this.messageList[stage] = callback;
     }
 }
 
@@ -78,7 +84,7 @@ class message {
         this.message = message; // 需要发送的信息
     }
     toJson() {
-        return JSON.stringify(message);
+        return JSON.stringify(this);
     }
 }
 
@@ -108,14 +114,19 @@ var messageMaker = {
         switch (stage) {
             case "dice":
                 msg = this.getDiceMessage(params);
+                break;
             case "operation":
                 msg = this.getOperationMessage(params);
+                break;
             case "event":
                 msg = this.getEventMessage(params);
+                break;
             case "ready":
                 msg = this.getReadyMessage(params);
+                break;
+            default:
+                msg = this.getReadyMessage(params);
         }
-        console.log(msg);
         return msg;
     }
 }

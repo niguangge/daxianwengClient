@@ -6,7 +6,7 @@ var map = {
   maps: [],
   heroPos: -1,
   centerNode: null,
-  heroNode: null,
+  heroNode: [],
   mapTypes: [],
   mapEvents: ["金", "木", "水", "火", "土", "时"],
   init(centerNode, mapTypes, heroPrefab) {
@@ -23,12 +23,20 @@ var map = {
       this.height = 85;
     }
     this.createMap();
-    this.createHero(0, heroPrefab);
+    this.createHero(2, heroPrefab);
   },
   createHero: function (playerNum, heroPrefab) {
-    this.heroNode = cc.instantiate(heroPrefab);
-    this.centerNode.addChild(this.heroNode);
-    this.heroNode.setPosition(cc.v2(2 * this.width, 0));
+    console.log("enter createHero");
+    for (let i = 0; i < playerNum; i++) {
+      console.log(`enter for i=${i}`);
+      var node = new cc.Node('hero ' + i);
+      this.centerNode.addChild(node);
+      node.setPosition(cc.v2(i % 2 == 0 ? -30 : 30, i < 2 ? 50 : -50));
+      console.log(`node${i}'s pos is x=${i % 2 == 0 ? -30 : 30},y=${i < 2 ? 50 : -50}`)
+      this.heroNode[i] = cc.instantiate(heroPrefab);
+      node.addChild(this.heroNode[i]);
+      this.heroNode[i].setPosition(cc.v2(2 * this.width, 0));
+    }
     console.log(heroPrefab);
   },
   createMap: function () {
@@ -68,12 +76,11 @@ var map = {
     }
     return this.maps;
   },
-  move(diceNum) {
+  move(diceNum, user) {
     let target = (this.heroPos + diceNum) % 36;
     let mapCur = this.maps[target];
-    this.heroNode.runAction(cc.moveTo(0.2, mapCur.x, mapCur.y));
+    this.heroNode[user].runAction(cc.moveTo(0.2, mapCur.x, mapCur.y));
     this.heroPos = target;
-    return this.executeAreaEvent();
   },
   //判断当前所属区域类型,执行区域对应操作
   executeAreaEvent: function () {

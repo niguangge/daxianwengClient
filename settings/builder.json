@@ -35,11 +35,11 @@
     "orientation": "portrait",
     "zip": false
   },
-  "startScene": "2d2f792f-a40c-49bb-a189-ed176a246e49",
+  "startScene": "9977b559-4042-4de7-b994-b38808bac56d",
   "title": "hello_world",
   "webOrientation": "auto",
   "wechatgame": {
-    "REMOTE_SERVER_ROOT": "http://niguang.free.idcfengye.com",
+    "REMOTE_SERVER_ROOT": "https://niguang.free.idcfengye.com",
     "appid": "wx7c10619ec1f0c576",
     "orientation": "portrait",
     "separate_engine": false,

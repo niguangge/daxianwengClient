@@ -74,12 +74,14 @@ cc.Class({
     },
 
     wxGetSetting() {
+        var self = this;
         wx.getSetting({
             success(res) {
                 if (res.authSetting["scope.userInfo"]) {
                     window.wx.getUserInfo({
                         success(res) {
                             gameData.userInfo = res.userInfo;
+                            // self.addImg(encodeURI(gameData.userInfo.avatarUrl));
                         }
                     });
                 } else {
@@ -119,9 +121,11 @@ cc.Class({
     addImg(headimg) {
         var self = this;
         cc.loader.load(headimg, (err, texture) => {
+            console.log("headimg is " + headimg);
             console.log(texture);
             console.log(self.imgIcon);
-            self.imgIcon.spriteFrame = texture;
+            let avatar = new cc.SpriteFrame(texture);
+            self.imgIcon.getComponent(cc.Sprite).spriteFrame = avatar;
         });
     }
     // update (dt) {},

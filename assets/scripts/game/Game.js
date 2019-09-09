@@ -27,7 +27,9 @@ cc.Class({
 
     onLoad() {
         this.userId = 0;
-        this.curUser = 0;
+        this.localUser = -1;
+        this.curUser = -1;
+        this.totalUser = 2;
         this.userList = [];
         this.heroPos = -1;
         this.width = 0;
@@ -43,39 +45,72 @@ cc.Class({
         this.heroNode;
     },
     start() {
-        // this.createHero(0);
-        this.diceShow();
-        this.eventHide();
-        this.userList = [0, 1, 2, 3];
+        // this.diceShow();
+        // this.eventHide();
+        // this.userList = [0, 1, 2, 3];
         websocket.connect();
-        console.log(window.gameData);
+        this.run("dice")
     },
+    /*
+        游戏流程：
+        1.本地就绪后向服务发送就绪
+        2.等所有玩家就绪后接收到服务器开始指令
+        3.从第一个玩家开始，执行回合
+        4.每回合包括掷骰子，触发事件，执行操作三个阶段
+        5.每个阶段都会向服务器发送当前阶段的请求，服务器返回后执行操作，开启下一阶段
+        6.等到有人飞升或走完10圈地图，游戏结束
+    */
+    run: function (stage) {
+        switch (stage) {
+            case "dice":
+                this.curUser++;
+                this.curUser = this.curUser % this.totalUser;
+                this.executeDice();
+                break;
+            case "operation":
+                this.executeOperation();
+                break;
+        }
+    },
+    executeDice: function (curUser) {
+        if (this.curUser == this.localUser) {
+            this.eventHide();
+            this.diceShow();
+        }
 
-    diceClick: function () {
-        var diceNum = this.getDiceNum();
-        var result = "掷骰结果为" + diceNum;
-        this.diceLabel.getComponent(cc.Label).string = result;
-        // let event = map.move(diceNum);
-        // this.eventLabel.getComponent(cc.Label).string = event;
+    },
+    executeOperation: function () {
         this.eventShow();
         this.diceHide();
     },
-
-    getDiceNum: function () {
-        var diceNum = 1;
+    diceClick: function () {
         // let result = websocket.send_data("test");
         let params = {
+            userId: window.gameData.openId,
+            heroPos: this.heroPos,
             diceNums: "3",
             diceTypes: ["normal", "plusOne", "minusOne"]
         }
+        let _this = this;
         websocket.sendMsg("dice", params, (data) => {
-            console.log("after msg" + data)
+            map.move(this.curUser, data.params.diceSum);
+            _this.run("event");
+            var result = "掷骰结果为" + data.params.diceSum;
+            _this.diceLabel.getComponent(cc.Label).string = result;
         })
-        return diceNum;
     },
-
     eventExecute: function () {
         this.curLing += 70;
+        let params = {
+            eventName: "0",
+            eventValue: "70",
+            operation: "0"
+        }
+        websocket.sendMsg("operation", params, (data) => {
+            var result = data.params.description + data.params.lingChange;
+            _this.eventLabel.getComponent(cc.Label).string = result;
+            _this.run("dice");
+        })
         this.updateLing();
         this.diceShow();
         this.eventHide();
@@ -85,13 +120,12 @@ cc.Class({
         this.eventHide();
     },
     eventShow: function () {
-        // this.eventNode.node.runAction(cc.sequence(cc.moveTo(0, 0, 500), cc.show()));
         this.eventNode.node.runAction(cc.sequence(cc.moveTo(0, 0, 0), cc.show()));
         this.eventExecuteBtn.interactable = true;
         this.eventCancelBtn.interactable = true;
     },
     eventHide: function () {
-        //把隐藏的面板向上移动以免干扰当前按钮的点击
+        //增加一秒动画效果，方便看清骰子点数,把隐藏的面板向上移动以免干扰当前按钮的点击
         this.eventNode.node.runAction(cc.sequence(cc.hide(), cc.moveTo(0, 0, 500)));
         this.eventExecuteBtn.interactable = false;
         this.eventCancelBtn.interactable = false;
@@ -104,7 +138,7 @@ cc.Class({
         this.diceBtn.interactable = true;
     },
     diceHide: function () {
-        //增加一秒动画效果，方便看清骰子点数
+        //增加一秒动画效果，方便看清骰子点数,把隐藏的面板向上移动以免干扰当前按钮的点击
         this.diceNode.node.runAction(cc.sequence(cc.scaleTo(1, 1.1, 1.1), cc.hide(), cc.moveTo(0, 0, 500)));
         this.diceBtn.interactable = false;
     },
