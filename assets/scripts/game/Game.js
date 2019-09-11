@@ -28,7 +28,7 @@ cc.Class({
     onLoad() {
         this.userId = 0;
         this.localUser = -1;
-        this.curUser = -1;
+        this.curUser = 0;
         this.totalUser = 2;
         this.userList = [];
         this.heroPos = -1;
@@ -48,10 +48,12 @@ cc.Class({
         // this.diceShow();
         // this.eventHide();
         // this.userList = [0, 1, 2, 3];
-        websocket.connect();
-        websocket.listen("start",function(){
-            this.run("dice");
+        websocket.listen("start", function () {
+            console.log("in start");
+            _this.run("dice");
         })
+        websocket.connect();
+        let _this = this;
     },
     /*
         游戏流程：
@@ -63,30 +65,37 @@ cc.Class({
         6.等到有人飞升或走完10圈地图，游戏结束
     */
     run: function (stage) {
-        switch (stage) {
-            case "dice":
-                this.curUser++;
-                this.curUser = this.curUser % this.totalUser;
-                this.executeDice();
-                break;
-            case "operation":
-                this.executeOperation();
-                break;
+        console.log(this);
+        console.log("this.curUser" + this.curUser);
+        console.log("window.userOrder" + window.userOrder);
+        if (this.curUser == window.userOrder) {
+            switch (stage) {
+                case "dice":
+                    console.log("in dice")
+                    // this.curUser++;
+                    // this.curUser = this.curUser % this.totalUser;
+                    this.executeDice();
+                    break;
+                case "operation":
+                    this.executeOperation();
+                    break;
+            }
         }
     },
-    executeDice: function (curUser) {
-        if (this.curUser == this.localUser) {
-            this.eventHide();
-            this.diceShow();
-        }
+    executeDice: function () {
+        this.eventHide();
+        this.diceShow();
 
     },
     executeOperation: function () {
         this.eventShow();
         this.diceHide();
+        this.curUser++;
+        this.curUser = this.curUser % this.totalUser;
     },
     diceClick: function () {
-        // let result = websocket.send_data("test");
+        this.diceBtn.interactable = false;
+        this.diceBtn.node.runAction(cc.hide());
         let params = {
             userId: window.gameData.openId,
             heroPos: this.heroPos,
@@ -95,9 +104,13 @@ cc.Class({
         }
         let _this = this;
         websocket.sendMsg("dice", params, (data) => {
-            map.move(this.curUser, data.params.diceSum);
-            _this.run("event");
-            var result = "掷骰结果为" + data.params.diceSum;
+            console.log("this.curUser" + _this.curUser);
+            console.log("window.userOrder" + window.userOrder);
+            map.move(_this.curUser, data.params.diceSum);
+            _this.run("operation");
+            console.log(window.userInfos);
+            console.log(_this.curUser);
+            var result = window.userInfos[_this.curUser].nickName + "掷出" + data.params.diceSum;
             _this.diceLabel.getComponent(cc.Label).string = result;
         })
     },
@@ -123,8 +136,13 @@ cc.Class({
     },
     eventShow: function () {
         this.eventNode.node.runAction(cc.sequence(cc.moveTo(0, 0, 0), cc.show()));
-        this.eventExecuteBtn.interactable = true;
-        this.eventCancelBtn.interactable = true;
+        if (this.curUser == window.userOrder) {
+            this.eventExecuteBtn.interactable = true;
+            this.eventCancelBtn.interactable = true;
+        } else {
+            this.eventExecuteBtn.node.runAction(cc.hide());
+            this.eventCancelBtn.node.runAction(cc.hide());
+        }
     },
     eventHide: function () {
         //增加一秒动画效果，方便看清骰子点数,把隐藏的面板向上移动以免干扰当前按钮的点击
@@ -133,11 +151,18 @@ cc.Class({
         this.eventCancelBtn.interactable = false;
     },
     diceShow: function () {
-        var result = "请掷骰";
+        if (this.curUser == window.userOrder) {
+            var result = "请掷骰";
+            // this.diceNode.node.runAction(cc.sequence(cc.moveTo(0, 0, 500), cc.show()));
+            this.diceBtn.node.runAction(cc.show());
+            this.diceBtn.interactable = true;
+        } else {
+            var result = `请${window.userInfos[this.curUser].nickName}掷骰`
+            this.diceBtn.node.runAction(cc.hide());
+        }
         this.diceLabel.getComponent(cc.Label).string = result;
-        // this.diceNode.node.runAction(cc.sequence(cc.moveTo(0, 0, 500), cc.show()));
         this.diceNode.node.runAction(cc.sequence(cc.moveTo(0, 0, 0), cc.show()));
-        this.diceBtn.interactable = true;
+
     },
     diceHide: function () {
         //增加一秒动画效果，方便看清骰子点数,把隐藏的面板向上移动以免干扰当前按钮的点击

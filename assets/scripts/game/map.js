@@ -26,18 +26,14 @@ var map = {
     this.createHero(2, heroPrefab);
   },
   createHero: function (playerNum, heroPrefab) {
-    console.log("enter createHero");
     for (let i = 0; i < playerNum; i++) {
-      console.log(`enter for i=${i}`);
       var node = new cc.Node('hero ' + i);
       this.centerNode.addChild(node);
       node.setPosition(cc.v2(i % 2 == 0 ? -30 : 30, i < 2 ? 50 : -50));
-      console.log(`node${i}'s pos is x=${i % 2 == 0 ? -30 : 30},y=${i < 2 ? 50 : -50}`)
       this.heroNode[i] = cc.instantiate(heroPrefab);
       node.addChild(this.heroNode[i]);
       this.heroNode[i].setPosition(cc.v2(2 * this.width, 0));
     }
-    console.log(heroPrefab);
   },
   createMap: function () {
     //首先制作起始点
@@ -48,7 +44,6 @@ var map = {
     start.setPosition(cc.v2(width * 2, 0));
     //顺时针制作整个地图
     for (var i = 0; i < 36; i++) {
-      console.log("enter for");
       var newMap = null;
       newMap = cc.instantiate(this.mapTypes[i % 6]);
       let x;
@@ -76,9 +71,10 @@ var map = {
     }
     return this.maps;
   },
-  move(diceNum, user) {
+  move(user, diceNum) {
     let target = (this.heroPos + diceNum) % 36;
     let mapCur = this.maps[target];
+    console.log(user);
     this.heroNode[user].runAction(cc.moveTo(0.2, mapCur.x, mapCur.y));
     this.heroPos = target;
   },

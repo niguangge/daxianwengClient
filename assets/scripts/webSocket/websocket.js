@@ -3,9 +3,15 @@ var websocket = {
     sock: null,
     messageList: {
         "join": function (message) {
-            console.log(message);
-            console.log(message.params.userOrder);
             window.userOrder = message.params.userOrder;
+            window.userInfos = message.params.userInfos;
+            for (let i = 0; i < message.params.userInfos.length; i++) {
+                if (message.params.userInfos[i].wxId == window.gameData.openId) {
+                    window.userOrder = i;
+                    // window.userInfos[i].nickName = message.params.userInfos[i].nickName;
+                }
+            }
+
         },
         "leave": function (message) {
             console.log(messageMaker.getLeaveMessage);
@@ -27,15 +33,12 @@ var websocket = {
         const message = JSON.parse(event.data);
         const eventName = message.stage;
         //执行回调
-        console.log("eventName is " + eventName);
-        console.log("callback is " + this.messageList[eventName]);
         this.messageList[eventName](message);
     },
 
 
     on_close: function () {
         this.close();
-        console.log("webSocket is close");
     },
 
     on_error: function () {
@@ -52,7 +55,7 @@ var websocket = {
     connect: function () {
         this.userId = window.gameData.openId;
         this.roomId = window.gameData.roomId;
-        let url = "ws://niguang.free.idcfengye.com/webSocketServer/" + this.roomId + "-" + this.openId;
+        let url = "ws://niguang.free.idcfengye.com/webSocketServer?roomId=" + this.roomId + "&userId=" + this.userId;
         this.sock = new WebSocket(url);
         this.sock.binaryType = "arraybuffer";
         this.sock.onopen = this.on_open.bind(this);
