@@ -81,7 +81,7 @@ cc.Class({
                     window.wx.getUserInfo({
                         success(res) {
                             gameData.userInfo = res.userInfo;
-                            // self.addImg(encodeURI(gameData.userInfo.avatarUrl));
+                            self.addImg(encodeURI(gameData.userInfo.avatarUrl));
                         }
                     });
                 } else {
@@ -119,13 +119,10 @@ cc.Class({
         });
     },
     addImg(headimg) {
-        var self = this;
-        cc.loader.load(headimg, (err, texture) => {
-            console.log("headimg is " + headimg);
-            console.log(texture);
-            console.log(self.imgIcon);
+        // var self = this;
+        cc.loader.load(headimg + "?aaa=aa.jpg", (err, texture) => {
             let avatar = new cc.SpriteFrame(texture);
-            self.imgIcon.getComponent(cc.Sprite).spriteFrame = avatar;
+            this.imgIcon.getComponent(cc.Sprite).spriteFrame = avatar;
         });
     }
     // update (dt) {},

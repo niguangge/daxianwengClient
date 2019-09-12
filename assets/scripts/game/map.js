@@ -27,24 +27,24 @@ var map = {
   },
   createHero: function (playerNum, heroPrefab) {
     for (let i = 0; i < playerNum; i++) {
-      var node = new cc.Node('hero ' + i);
-      this.centerNode.addChild(node);
-      node.setPosition(cc.v2(i % 2 == 0 ? -30 : 30, i < 2 ? 50 : -50));
+      var heroBaseNode = new cc.Node('hero ' + i);
+      this.centerNode.addChild(heroBaseNode);
+      heroBaseNode.setPosition(cc.v2(i % 2 == 0 ? -30 : 30, i < 2 ? 50 : -50));
       this.heroNode[i] = cc.instantiate(heroPrefab);
-      node.addChild(this.heroNode[i]);
+      heroBaseNode.addChild(this.heroNode[i]);
       this.heroNode[i].setPosition(cc.v2(2 * this.width, 0));
     }
   },
   createMap: function () {
     //首先制作起始点
-    var start = cc.instantiate(this.mapTypes[5]);
+    let start = cc.instantiate(this.mapTypes[5]);
     this.centerNode.addChild(start);
     let width = this.width;
     let height = this.height;
     start.setPosition(cc.v2(width * 2, 0));
     //顺时针制作整个地图
-    for (var i = 0; i < 36; i++) {
-      var newMap = null;
+    for (let i = 0; i < 36; i++) {
+      let newMap = null;
       newMap = cc.instantiate(this.mapTypes[i % 6]);
       let x;
       let y;
@@ -80,7 +80,7 @@ var map = {
   },
   //判断当前所属区域类型,执行区域对应操作
   executeAreaEvent: function () {
-    var event = this.mapEvents[this.heroPos % 6];
+    let event = this.mapEvents[this.heroPos % 6];
     // return event;
     eventLabel.getComponent(cc.Label).string = event;
   },

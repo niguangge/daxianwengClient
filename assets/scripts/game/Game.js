@@ -45,15 +45,33 @@ cc.Class({
         this.heroNode;
     },
     start() {
-        // this.diceShow();
-        // this.eventHide();
-        // this.userList = [0, 1, 2, 3];
-        websocket.listen("start", function () {
-            console.log("in start");
-            _this.run("dice");
-        })
+        this.initWebsocketListen();
         websocket.connect();
-        let _this = this;
+    },
+    initWebsocketListen: function () {
+        websocket.listen("start", (data) => {
+            window.userInfos = data.params.userDetails;
+            for (let i = 0; i < data.params.userDetails.length; i++) {
+                if (data.params.userDetails[i].wxId == window.gameData.openId) {
+                    window.userOrder = i;
+                }
+            }
+            this.run("dice");
+        })
+        websocket.listen("dice", (data) => {
+            map.move(this.curUser, data.params.diceSum);
+            this.run("operation");
+        })
+        websocket.listen("operation", (data) => {
+            var result = data.params.description + data.params.lingChange;
+            this.eventLabel.getComponent(cc.Label).string = result;
+
+            this.curLing += 70;
+            this.updateLing();
+            this.curUser++;
+            this.curUser = this.curUser % this.totalUser;
+            this.run("dice");
+        })
     },
     /*
         游戏流程：
@@ -65,21 +83,13 @@ cc.Class({
         6.等到有人飞升或走完10圈地图，游戏结束
     */
     run: function (stage) {
-        console.log(this);
-        console.log("this.curUser" + this.curUser);
-        console.log("window.userOrder" + window.userOrder);
-        if (this.curUser == window.userOrder) {
-            switch (stage) {
-                case "dice":
-                    console.log("in dice")
-                    // this.curUser++;
-                    // this.curUser = this.curUser % this.totalUser;
-                    this.executeDice();
-                    break;
-                case "operation":
-                    this.executeOperation();
-                    break;
-            }
+        switch (stage) {
+            case "dice":
+                this.executeDice();
+                break;
+            case "operation":
+                this.executeOperation();
+                break;
         }
     },
     executeDice: function () {
@@ -90,75 +100,51 @@ cc.Class({
     executeOperation: function () {
         this.eventShow();
         this.diceHide();
-        this.curUser++;
-        this.curUser = this.curUser % this.totalUser;
+
     },
     diceClick: function () {
-        this.diceBtn.interactable = false;
-        this.diceBtn.node.runAction(cc.hide());
         let params = {
             userId: window.gameData.openId,
             heroPos: this.heroPos,
             diceNums: "3",
             diceTypes: ["normal", "plusOne", "minusOne"]
         }
-        let _this = this;
-        websocket.sendMsg("dice", params, (data) => {
-            console.log("this.curUser" + _this.curUser);
-            console.log("window.userOrder" + window.userOrder);
-            map.move(_this.curUser, data.params.diceSum);
-            _this.run("operation");
-            console.log(window.userInfos);
-            console.log(_this.curUser);
-            var result = window.userInfos[_this.curUser].nickName + "掷出" + data.params.diceSum;
-            _this.diceLabel.getComponent(cc.Label).string = result;
-        })
+        websocket.sendMsg("dice", params);
+
     },
     eventExecute: function () {
-        this.curLing += 70;
         let params = {
             eventName: "0",
             eventValue: "70",
             operation: "0"
         }
-        websocket.sendMsg("operation", params, (data) => {
-            var result = data.params.description + data.params.lingChange;
-            _this.eventLabel.getComponent(cc.Label).string = result;
-            _this.run("dice");
-        })
-        this.updateLing();
-        this.diceShow();
-        this.eventHide();
+        websocket.sendMsg("operation", params);
     },
     eventCancel: function () {
-        this.diceShow();
-        this.eventHide();
+        this.curUser++;
+        this.curUser = this.curUser % this.totalUser;
     },
     eventShow: function () {
         this.eventNode.node.runAction(cc.sequence(cc.moveTo(0, 0, 0), cc.show()));
         if (this.curUser == window.userOrder) {
-            this.eventExecuteBtn.interactable = true;
-            this.eventCancelBtn.interactable = true;
+            this.eventExecuteBtn.node.active = true;
+            this.eventCancelBtn.node.active = true;
         } else {
-            this.eventExecuteBtn.node.runAction(cc.hide());
-            this.eventCancelBtn.node.runAction(cc.hide());
+            this.eventExecuteBtn.node.active = false;
+            this.eventCancelBtn.node.active = false;
         }
     },
     eventHide: function () {
         //增加一秒动画效果，方便看清骰子点数,把隐藏的面板向上移动以免干扰当前按钮的点击
         this.eventNode.node.runAction(cc.sequence(cc.hide(), cc.moveTo(0, 0, 500)));
-        this.eventExecuteBtn.interactable = false;
-        this.eventCancelBtn.interactable = false;
     },
     diceShow: function () {
         if (this.curUser == window.userOrder) {
             var result = "请掷骰";
-            // this.diceNode.node.runAction(cc.sequence(cc.moveTo(0, 0, 500), cc.show()));
-            this.diceBtn.node.runAction(cc.show());
-            this.diceBtn.interactable = true;
+            this.diceBtn.node.active = true;
         } else {
             var result = `请${window.userInfos[this.curUser].nickName}掷骰`
-            this.diceBtn.node.runAction(cc.hide());
+            this.diceBtn.node.active = false;
         }
         this.diceLabel.getComponent(cc.Label).string = result;
         this.diceNode.node.runAction(cc.sequence(cc.moveTo(0, 0, 0), cc.show()));
@@ -167,7 +153,6 @@ cc.Class({
     diceHide: function () {
         //增加一秒动画效果，方便看清骰子点数,把隐藏的面板向上移动以免干扰当前按钮的点击
         this.diceNode.node.runAction(cc.sequence(cc.scaleTo(1, 1.1, 1.1), cc.hide(), cc.moveTo(0, 0, 500)));
-        this.diceBtn.interactable = false;
     },
     updateLing: function () {
         var curLing = this.curLing;

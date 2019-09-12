@@ -3,15 +3,6 @@ var websocket = {
     sock: null,
     messageList: {
         "join": function (message) {
-            window.userOrder = message.params.userOrder;
-            window.userInfos = message.params.userInfos;
-            for (let i = 0; i < message.params.userInfos.length; i++) {
-                if (message.params.userInfos[i].wxId == window.gameData.openId) {
-                    window.userOrder = i;
-                    // window.userInfos[i].nickName = message.params.userInfos[i].nickName;
-                }
-            }
-
         },
         "leave": function (message) {
             console.log(messageMaker.getLeaveMessage);
@@ -33,6 +24,7 @@ var websocket = {
         const message = JSON.parse(event.data);
         const eventName = message.stage;
         //执行回调
+        console.log(eventName);
         this.messageList[eventName](message);
     },
 
@@ -65,9 +57,7 @@ var websocket = {
         this.sock.sendMsg = this.sendMsg.bind(this);
     },
 
-    sendMsg: function (stage, params, callback) {
-        //存储事件
-        this.messageList[stage] = callback;
+    sendMsg: function (stage, params) {
         this.sock.send(messageMaker.getMsg(stage, params));
     },
     listen: function (stage, callback) {
